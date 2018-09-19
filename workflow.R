@@ -39,7 +39,7 @@ source("scripts/2_process/filterData.R", encoding = 'UTF-8')
 #' only.data.with.field.data <- mergedData[rowSums(is.na(mergedData[,c("WT","DO","Turb","SC","pH")])) != 5,]
 
 source("scripts/2_process/categorizeBacteria.R", encoding = 'UTF-8')
-#' @export
+#' @examples
 #' mergedData <- readRDS(file.path("cached_data","6_process_cagegorize_Bacteria","rds","summary_noWW_noQA.rds"))
 
 source("scripts/2_process/summaryOpticalVariables.R", encoding = 'UTF-8')
