@@ -22,7 +22,7 @@ mergeGLPF_GLRI_opt <- function(raw.path, raw.cleaned, cached.path, cached.save){
   dfabs <- merge(dfabsGLPF,dfabs,by='nm')
   dfflGLPF$exem <- gsub(" ","", dfflGLPF$exem)
   dffl  <- bind_cols(dfflGLPF,dffl)
-  dffl  <- dffl[,-which(names(dffl) == "exem")[-1]]
+  # dffl  <- dffl[,-which(names(dffl) == "exem")]
   
   dir.create(file.path(cached.path,cached.save), showWarnings = FALSE)
   
