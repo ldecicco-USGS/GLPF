@@ -15,7 +15,7 @@ plotOpticalSummaries <- function(base.name, cached.path){
   ##############################################################################################
   # Plot EEMs
   a <- EEMs3D
-  fieldIDs <- dfall[,"USGSFieldID"]
+  fieldIDs <- dfall[,"FieldID"]
   labIDs <- dfall[,"CAGRnumber"]
   Ex <- as.numeric(names(a[,1,1]))
   Em <- as.numeric(names(a[1,,1]))

@@ -13,11 +13,11 @@ eventGroups <- function(cached.path, base.name, cached.save){
   summaryDF <- summaryDF[,-groupCols]
   }
   eventGroups <- groupData[,"EventGroup"]
-  eventGroups2 <- groupData[,"EventGroup2"]
+  # eventGroups2 <- groupData[,"EventGroup2"]
   names(eventGroups) <- groupData[,"eventNum"]
-  names(eventGroups2) <- groupData[,"eventNum"]
+  # names(eventGroups2) <- groupData[,"eventNum"]
   summaryDF$eventGroup <- eventGroups[summaryDF$eventNum]
-  summaryDF$eventGroup2 <- eventGroups2[summaryDF$eventNum]
+  # summaryDF$eventGroup2 <- eventGroups2[summaryDF$eventNum]
   
   cr <- which(names(summaryDF)=="sources2")
   summaryDF <- summaryDF[,c(1:cr,c((ncol(summaryDF)-1),ncol(summaryDF)),

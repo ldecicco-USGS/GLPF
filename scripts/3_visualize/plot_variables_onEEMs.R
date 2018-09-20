@@ -190,9 +190,18 @@ variables <- c("Sag240_255",
                "Sn.2",
                "T")
 
+load("C:/Users/ldecicco/Downloads/modelCoefList.RData")
+
+pdf("steves_variables.pdf", width = 11, height = 7.6)
+for(i in modelCoefList){
+  cat(i,"\n")
+  browser()
+  plot_variables_onEEMs(i, EEM )
+}
+dev.off()
 
 pdf("test.pdf", width = 11, height = 7.6)
-  plot_variables_onEEMs(variables, EEM )
+plot_variables_onEEMs(variables, EEM )
 dev.off()
 
 

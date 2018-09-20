@@ -61,6 +61,7 @@ source("scripts/2_process/eventGrouping.R", encoding = 'UTF-8')
 #' @examples
 #' summaryDF <- readRDS(file.path("cached_data","8_process_new_categories","rds",paste0("summary","_noQA",".rds")))
 
+library(dplyr)
 
 summaryDF <- readRDS(file.path("cached_data","8_process_new_categories","rds",paste0("summary","_noQA",".rds")))
 dfabs <- readRDS(file.path("cached_data","5_process_filterData","rds","dfabs_noWW_noQA.rds"))

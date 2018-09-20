@@ -1,0 +1,208 @@
+---
+title: "What are we doing?"
+output: html_document
+---
+
+```{r setup, include=FALSE, message=FALSE}
+library(knitr)
+library(dplyr)
+library(DT)
+opts_chunk$set(echo = TRUE,
+               message = FALSE,
+               warning = FALSE)
+```
+
+## Categories
+
+```{r catTable, echo=FALSE}
+df <- data.frame(
+  category = c("Bacteria Contamination","Bacteria Type",
+               "Geography","Season", 
+               "Flow Type I", "Flow Type II", 
+               "Flow Conditions"),
+  choices = c("1-6","Human, Uncontaminated, Dog, Animal, Atypical human, Uncertain",
+              "WI, MI, NY","Fall, Winter, Spring, Summer",
+              "Environmental, Sewage","Stream, Storm Sewer, Sewage", "Base, Event"),
+  stringsAsFactors = FALSE
+)
+
+kable(df)
+
+```
+
+Most of those categories are self-explanatory, but categorizing the bacteria contamination was not:
+
+### Bacteria Contamination
+
+This was tricky because there were 3 measured bacteria values, two measurements of lachno (Lachnoclostridium?), and one of bacHum (?). For the contamination categories, we ignored lachno2 (this was used though in the "Bacteria Type" categories). 
+
+First, we classified each of those bacteria levels. Then, we combined the 2 classifications. Hopefully this chart explains that:
+
+First, both lachno and bachHum were classified:
+
+```{r firstClass, echo=FALSE}
+df_hum <- data.frame(
+  measurement = c("0-225","226-1,000","1,001-10,000", "10,001-100,000", "100,001-1,000,000", ">1,000,000"),
+  classification = c("ND","Low","Medium","High","Very High", "Extreme"),
+  stringsAsFactors = FALSE
+)
+
+kable(df_hum)
+
+```
+
+Now to combine:
+```{r comboClass, echo=FALSE}
+# Here's a table...but I think the graph is much easier to follow:
+# df_combo <- data.frame(
+#   category = c("1","2","","3","","","4","","","","5","","6"),
+#   lower_bound = c("ND",
+#                   "ND",
+#                   "low",
+#                   "ND",
+#                   "low",
+#                   "medium",
+#                   "ND",
+#                   "low",
+#                   "medium",
+#                   "high",
+#                   "low to medium",
+#                   "high to very-high",
+#                   "high to extreme"),
+#   upper_bound = c("ND",
+#                   "low to medium",
+#                   "low",
+#                   "high",
+#                   "medium to high",
+#                   "medium",
+#                   "very-high to extreme",
+#                   "very-high",
+#                   "high to very-high",
+#                   "high",
+#                   "extreme",
+#                   "very-high",
+#                   "extreme"),
+#   stringsAsFactors = FALSE
+# )
+# kable(df_combo)
+```
+
+```{r tilesCat, echo=FALSE}
+library(ggplot2)
+
+df_2 <- expand.grid(c("ND","Low","Medium","High","Very High", "Extreme"),
+                    c("ND","Low","Medium","High","Very High", "Extreme"))
+df_2$Category <- NA
+df_2$Category <- c("1","2","2","3","4","4","2","2",
+              "3","3","4","5","2","3","3","4",
+              "4","5","3","3","4","4","5","6",
+              "4","4","4","5","5","6","4","5",
+              "5","6","6","6")
+
+ggplot(data = df_2) +
+  geom_tile(aes(x = Var1, y=Var2, fill = Category)) +
+  theme_minimal() +
+  theme(axis.title = element_blank())
+
+```
+
+If the measurements were very close to a cutoffs, we'd explore nudging them up or down to see how the results were affected.
+
+### Bacteria Type
+
+Additionally, for some of the data, we had a "dog" marker. This allowed a further characterization from the bacteria measurements. If this is needed to be described, it might be easiest with a tree diagram.
+
+## Optical markers
+
+Next step was to create the optical categories. 
+
+### Fluorescence pairs and means
+
+```{r flPairs, echo=FALSE}
+DT::datatable(read.csv("raw_data/opticalSummary/ex_ems_meansCA.csv",as.is=TRUE), rownames = FALSE, options = list(pageLength = 5))
+```
+
+### HIX, FI, Freshness
+
+"Computes humification index and fluorescence indes from fluorescence data. HIX as defined by Ohno, 2002, Fluorescence inner-filtering correction for determining the humification index of dissolved organic matter"
+
+### Single absorbance signals
+
+The following wavelengths are flagged from the absorbance measurements: `r paste(read.csv("raw_data/opticalSummary/abs_wavsCA.csv",as.is=TRUE)[,1], collapse = ", ")`.
+
+### Spectral slopes
+
+```{r spectralSlopes, echo=FALSE}
+DT::datatable(read.csv("raw_data/opticalSummary/SagWavesCA.csv",as.is=TRUE), rownames = FALSE)
+```
+
+### Deviance of absorbance from exponential regression in the wastewater area
+
+"Computes residuals from a linear regression using the first order decay function as defined in Helms et al. 2008, Limnol. Oceanogr., 53(3), 955-969"
+
+```{r devience, echo=TRUE, eval=FALSE}
+getExpResid(wavelength=269,
+           rangeReg=c(240,341),rangeGap=c(254,302),
+           dataAbs=dfabs,
+           waveCol="nm",colSubsetString="gr",
+           dataSummary=dfOpt,grnum="CAGRnumber")
+```
+
+### Ratios
+
+```{r ratios, echo=FALSE}
+orderRatios <- function(sigs){
+    #Ratios of a few things
+    ratioVars <- expand.grid(sigs,sigs, stringsAsFactors = FALSE) %>%
+      filter(Var1 != Var2) 
+    
+    ratioVars$lookup <- apply(ratioVars[,c("Var1","Var2")],1, function(x){paste(sort(x),collapse="~")})
+    
+    ratioVars <- filter(ratioVars, !duplicated(lookup)) %>%
+      select(-lookup)    
+    return(ratioVars)
+  }
+
+SummaryDir <- "raw_data/opticalSummary/"
+ratioSignalsAbs <- read.csv(file.path(SummaryDir,"ratioSignalsAbsCA.csv"),as.is=TRUE)
+ratioSignalsAbs <- ratioSignalsAbs[which(ratioSignalsAbs[2]>0),1]
+ratioSignalsSr <- read.csv(file.path(SummaryDir,"ratioSignalsSrCA.csv"),as.is=TRUE)
+ratioSignalsSr <- ratioSignalsSr[which(ratioSignalsSr[2]>0),1]
+ratioSignalsSniff <- read.csv(file.path(SummaryDir,"ratioSignalsSniff.csv"),as.is=TRUE)
+ratioSignalsSniff <- ratioSignalsSniff[which(ratioSignalsSniff[2]>0),1]
+ratioSignalsSniffWetStar <- read.csv(file.path(SummaryDir,"ratioSignalsSniffAll.csv"),as.is=TRUE)[,1]
+logSignals <- read.csv(file.path(SummaryDir,"logSignalsCA.csv"),as.is=TRUE)
+
+ratios <- dplyr::bind_rows(orderRatios(ratioSignalsAbs), 
+  orderRatios(ratioSignalsSr), 
+  orderRatios(ratioSignalsSniff), 
+  orderRatios(c("Sn.1","Sn.2","Sn.3","Sn.4",                                               "Sn.5","Sn.6","Sn.7","Sn.8","Sn.9")))
+
+DT::datatable(ratios, rownames = FALSE, options = list(pageLength = 5)) %>%
+  formatStyle(colnames(ratios), `text-align` = 'center')
+
+```
+
+### Ratios minus baseline
+
+```{r ratiosWBaseline, echo=FALSE}
+
+df_1 <- orderRatios(ratioSignalsAbs[ratioSignalsAbs != "A254"])
+df_1$baseline <- "A254"
+df_2 <- orderRatios(ratioSignalsSniff[ratioSignalsSniff != "F"])
+df_2$baseline <- "F"
+
+ratio_base <- dplyr::bind_rows(df_1, df_2)
+
+DT::datatable(ratio_base, rownames = FALSE, options = list(pageLength = 5)) %>%
+  formatStyle(colnames(ratio_base), `text-align` = 'center')
+
+```
+
+### Log Transform
+
+`r paste(logSignals[,1], collapse = ", ")`
+
+## Field measurements
+
+Some sites had pH, DO, turbidity, specific conductance, and water temperature, measurements as well. When possible we tried to incorporate these in models.
