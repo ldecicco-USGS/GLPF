@@ -10,9 +10,10 @@ library(DT)
 opts_chunk$set(echo = TRUE,
                message = FALSE,
                warning = FALSE)
+# This should work if the workflow.R script has been run.
 ```
 
-## Categories
+# Categories
 
 ```{r catTable, echo=FALSE}
 df <- data.frame(
@@ -124,7 +125,7 @@ DT::datatable(read.csv("raw_data/opticalSummary/ex_ems_meansCA.csv",as.is=TRUE),
 
 ### HIX, FI, Freshness
 
-"Computes humification index and fluorescence indes from fluorescence data. HIX as defined by Ohno, 2002, Fluorescence inner-filtering correction for determining the humification index of dissolved organic matter"
+"Computes humification index and fluorescence indies from fluorescence data. HIX as defined by Ohno, 2002, Fluorescence inner-filtering correction for determining the humification index of dissolved organic matter"
 
 ### Single absorbance signals
 
@@ -206,3 +207,79 @@ DT::datatable(ratio_base, rownames = FALSE, options = list(pageLength = 5)) %>%
 ## Field measurements
 
 Some sites had pH, DO, turbidity, specific conductance, and water temperature, measurements as well. When possible we tried to incorporate these in models.
+
+## Events
+
+Finally, we tried grouping the measurements into similar events:
+
+```{r eventGroups, echo = FALSE}
+groupData <- read.csv(file.path("cached_data","8_process_new_categories","eventFreqAndDatesWGroups.csv"),stringsAsFactors = FALSE)
+
+DT::datatable(dplyr::select(groupData, eventNum, hydroCondition, Freq, State, EventGroup), 
+              rownames = FALSE, options = list(pageLength = 5))
+
+```
+
+# Summary of Information
+
+With that being said, we have a fairly large "training set":
+
+```{r trainingData}
+summaryDF <- readRDS(file.path("cached_data","8_process_new_categories","rds",paste0("summary","_noQA",".rds")))
+
+#Info data:
+names(summaryDF)[c(1,4:8, 12:16)]
+
+#Field data:
+names(summaryDF)[c(17:21)]
+
+#Other data:
+names(summaryDF)[c(22:26)]
+
+#Bacteria data:
+names(summaryDF)[c(27:44)]
+
+#Category data:
+names(summaryDF)[c(2,9:11,47:54)]
+
+#############################################
+# Optical peaks:
+names(summaryDF)[c(55:105)]
+
+# HIX, FI, Freshness
+names(summaryDF)[c(106:109)]
+
+# Absorbance:
+names(summaryDF)[c(110:117)]
+
+# Spectral slopes
+names(summaryDF)[c(118:123)]
+
+# Deviance of absorbance
+names(summaryDF)[c(124)]
+
+# Can comment these out/in...there's a lot
+# Ratios:
+# names(summaryDF)[c(125:393)]
+
+# Ratios with baseline:
+# names(summaryDF)[c(394:585)]
+
+# Log-transformed data:
+names(summaryDF)[c(586:641)]
+
+```
+
+# Model workflows
+
+## Regression trees
+(side note: we didn't explore regression forests because of the difficulties/impossible? to implement for the goal of a "cheap sensor")
+
+First, we came up with various "sets" of model prcesses (specifics will be described later). For each set, we calculated sensitivity, specificity, and accuracy, and plotted the results color-coded by states, shape-coded for season, and size-coded for stream/storm sewer/sewage. We also tried each model set using just absorbance data, just florescence data, and the combination (if just absorbance or florescence could be used, that would make designing the sensor easier). For each set, we tried using all column (removing rows with NA's), all rows (removing columns with NA's). For each set, we also consider the full data set, and the subset that doesn't include wastewater.
+
+So....what are the sets:
+
+1. 
+
+
+
