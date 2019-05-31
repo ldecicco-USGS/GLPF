@@ -7,7 +7,7 @@ cached.save <- "0_download"
 
 getGoogleData <- function(cached.path, cached.save){
   
-  token <- gs_auth(cache = FALSE)
+  
   my_sheets <- gs_ls()
   
   glpfTitle <- gs_title("GLPF sample tracking form.xlsx")
@@ -39,6 +39,8 @@ getGoogleData <- function(cached.path, cached.save){
                       racoon=racoon.cn.100ml..relative..,
                       dog = dog.cn.100ml)
     dfState$State <- gsub(' ','',dfState$State)
+    
+    names(dfState)[2] <- "USGS_SiteID"
     
     if(i == 2) {
       df <- dfState

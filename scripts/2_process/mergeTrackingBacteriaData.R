@@ -13,6 +13,8 @@ mergeTrackingBact <- function(raw.path, cached.path, cached.save){
   load(file=file.path(raw.path,"PreCleaned",'GLRI01-04-16_mergedBact.RData'))
   load(file=file.path(raw.path,"PreCleaned",'GLRIWWMar162016summary.RData'))
 
+  names(dfall)[names(dfall) == "USGS.NWIS.Station.ID..if.applicable."] <- "USGS_SiteID"
+  dfall$USGS_SiteID <- zeroPad(dfall$USGS_SiteID, 8)
   dfall <- left_join(dfall, select(dfOpt, CAGRnumber, DOCResult, TDNResult), by="CAGRnumber")
   
   # "All GLRI samples were event samples, so just use that....Steve 8/26/16"
@@ -43,7 +45,10 @@ mergeTrackingBact <- function(raw.path, cached.path, cached.save){
   
   dfglpfDOC <- dfglpfSummary[,c('Grnumber','DOCResult','TDNResult')]
   dfglpfDOC <- dfglpfDOC[which(dfglpfDOC$Grnumber %in% df$CAGRnumber),]
-  df <- left_join(df,dfglpfDOC,by = c('CAGRnumber'='Grnumber'))
+  
+  df <- left_join(df,
+                  dfglpfDOC,
+                  by = c('CAGRnumber'='Grnumber'))
   
   df <- full_join(df, dfall)
 

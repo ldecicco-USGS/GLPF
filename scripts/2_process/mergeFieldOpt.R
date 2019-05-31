@@ -12,7 +12,7 @@ mergeFieldOpt <- function(raw.path, cached.path, cached.save){
   
   data.opt <- mutate(data.opt,
                       USGSSTAID = zeroPad(ifelse(is.na(USGSSTAID), "", as.character(USGSSTAID)), padTo = 8),
-                      USGSNWISStationIDifapplicable = zeroPad(ifelse(is.na(USGSNWISStationIDifapplicable), "", as.character(USGSNWISStationIDifapplicable)), padTo = 8),
+                      USGSNWISStationIDifapplicable = zeroPad(ifelse(is.na(USGS_SiteID), "", as.character(USGS_SiteID)), padTo = 8),
                       startDateTime = pdate)#parse_date_time(Startdatetimemmddyyhhmm, c("%m/%d/%Y %H:%M:%S", "%m/%d/%Y %H:%M")),
                       
   data.opt <- mutate(data.opt,
@@ -55,13 +55,13 @@ mergeFieldOpt <- function(raw.path, cached.path, cached.save){
   # 
   data.mi.merge <- right_join(select(data.mi,-FieldID), data.opt.mi, 
                              by=c("SAMPLE_START_DT"="roundDate",
-                                  "SiteID" = "USGSNWISStationIDifapplicable")) %>%
+                                  "SiteID" = "USGS_SiteID")) %>%
     filter(!is.na(CAGRnumber)) %>%
     mutate(startDateTime=SAMPLE_START_DT,
            UVch1 = NA,
            UVch2 = NA,
            UVch3 = NA) %>%
-    rename(USGSNWISStationIDifapplicable = SiteID)
+    rename(USGS_SiteID = SiteID)
   
   data.mi.merge <- data.mi.merge[, names(data.ny.merge)]
   
@@ -93,7 +93,7 @@ mergeFieldOpt <- function(raw.path, cached.path, cached.save){
   names(data.merge) <- enc2utf8(names(data.merge))
 
   data.merge.check <- select(data.merge, CAGRnumber, State, FieldID, 
-                             USGSNWISStationID, VolumeFilteredL, Date,
+                             USGS_SiteID, VolumeFilteredL, Date,
                              FilterA04µMUSGSMIBARL,FilterB02µMUWMSFS,
                              Site,USGSNWISStationIDifapplicable,USGSSTAID,
                              SAMPLE_START_DT, endDateTime,eventNumInd,
@@ -115,11 +115,11 @@ mergeFieldOpt <- function(raw.path, cached.path, cached.save){
                                      "MIBARLID","UWMFT","eventNum",
                                      "Comments","hydroCondition","State","Season",
                                      "SampleType9regular2blank7replicate",
-                                     "USGSNWISStationIDifapplicable",
+                                     "USGS_SiteID",
                                      "IfTributarySewerOutfallManholeorDitch",
                                      "VirusAutosampleorSewerGrab","project")], 
                        merged.data) %>%
-    rename(SiteID=USGSNWISStationIDifapplicable,
+    rename(SiteID=USGS_SiteID,
            pedate = endDateTime)
   
   dir.create(file.path(cached.path,cached.save), showWarnings = FALSE)

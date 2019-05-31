@@ -1,4 +1,6 @@
 # Read data from Google Tracking:
+library(googlesheets)
+token <- gs_auth(cache = FALSE)
 source("scripts/0_download/getGoogleSampleTrackingDownload.R")
 #' @examples 
 #' tracking <- readRDS(file.path("cached_data","0_download","tracking.rds"))
