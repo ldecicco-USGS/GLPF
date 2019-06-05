@@ -9,13 +9,32 @@ cached.save <- "3_process_merge_bacteria"
 mergeTrackingBact <- function(raw.path, cached.path, cached.save){
   df <- readRDS(file.path(cached.path,"0_download","tracking.rds" ))
 
+  df_glri <- readRDS(file.path(cached.path,"0_download","tracking_GLRI.rds" ))
+  
   dfglpfSummary <- setDF(fread(file.path(raw.path,"optics","GLPF_Summary.csv")))
   load(file=file.path(raw.path,"PreCleaned",'GLRI01-04-16_mergedBact.RData'))
   load(file=file.path(raw.path,"PreCleaned",'GLRIWWMar162016summary.RData'))
 
   names(dfall)[names(dfall) == "USGS.NWIS.Station.ID..if.applicable."] <- "USGS_SiteID"
-  dfall$USGS_SiteID <- zeroPad(dfall$USGS_SiteID, 8)
+  names(dfOpt)[names(dfOpt) == "USGS.NWIS.Station.ID..if.applicable."] <- "USGS_SiteID"
+  
+  dfOpt$USGS_SiteID[dfOpt$USGS_SiteID == ""] <- NA
+  dfall$USGS_SiteID[dfall$USGS_SiteID == ""] <- NA
+  
+  dfall$USGS_SiteID <- dataRetrieval::zeroPad(dfall$USGS_SiteID, 8)
+  dfOpt$USGS_SiteID <- dataRetrieval::zeroPad(dfOpt$USGS_SiteID, 8)
+  
   dfall <- left_join(dfall, select(dfOpt, CAGRnumber, DOCResult, TDNResult), by="CAGRnumber")
+  
+  dfall$USGS_SiteID[which(dfall$USGS_SiteID == "41645375")] <- "041645375"
+
+  dfall <- dfall %>%
+    left_join(select(df_glri, newID=USGS_SiteID, CAGRnumber), by="CAGRnumber")
+  
+  dfall$USGS_SiteID[which(dfall$USGS_SiteID == "PROCESSING")] <- dfall$newID[which(dfall$USGS_SiteID == "PROCESSING")]
+  dfall$USGS_SiteID[is.na(dfall$USGS_SiteID)] <- dfall$newID[is.na(dfall$USGS_SiteID)]
+  
+  dfall <- select(dfall, -newID)
   
   # "All GLRI samples were event samples, so just use that....Steve 8/26/16"
   # dfall == GLRI
@@ -50,7 +69,7 @@ mergeTrackingBact <- function(raw.path, cached.path, cached.save){
                   dfglpfDOC,
                   by = c('CAGRnumber'='Grnumber'))
   
-  df <- full_join(df, dfall)
+  df <- bind_rows(df, dfall)
 
   df <- select(df, 
                -qpcrBacHumanResults,

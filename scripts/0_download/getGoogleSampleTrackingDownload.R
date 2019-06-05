@@ -1,5 +1,6 @@
 library(googlesheets)
 library(dplyr)
+library(lubridate)
 
 cached.path <- "cached_data"
 cached.save <- "0_download"
@@ -59,3 +60,49 @@ getGoogleData <- function(cached.path, cached.save){
 }
 
 getGoogleData(cached.path, cached.save)
+
+getGLRIsites <- function(cached.path, cached.save){
+  
+  glriTitle <- gs_title("GLRI Virus sample tracking form_V2_20150520.xlsx")
+  
+  sheets <- c("NY BacOptic","WI BacOptic")
+  
+  df <- data.frame()
+  
+  for(i in sheets){
+    
+    glriTracking <- gs_read(glriTitle,ws=i, range=cell_cols("A:Z"))
+    names(glriTracking) <- make.names(names(glriTracking))
+    
+    glriTracking$pdate <- parse_date_time(glriTracking$Start.date.time..mm.dd.yy.hh.mm., orders = c("m/d/y H:M:S","m/d/y H:M"))
+    
+    glriTracking$pdate <- glriTracking$pdate + 5*60*60
+    
+    glriTracking$date <- as.Date(glriTracking$pdate)
+    
+    glriTracking$UWMFT <- suppressWarnings(as.integer(glriTracking$UWMFT))
+    glriTracking$MIBARLID <- suppressWarnings(as.integer(glriTracking$MIBARLID))
+  
+    glriTracking$State <- gsub(' ','',glriTracking$State)
+    
+    names(glriTracking)[2] <- "USGS_SiteID"
+    
+    names(glriTracking) <- gsub('\\.','',names(glriTracking))
+    names(glriTracking) <- gsub('\\?','',names(glriTracking))
+    
+    glriTracking <- glriTracking[!(is.na(glriTracking$CAGRnumber) | glriTracking$CAGRnumber %in% c("x")),]
+  
+    if(i == sheets[1]){
+      df <- glriTracking
+    } else {
+      df <- dplyr::bind_rows(df, glriTracking)
+    }
+    
+  }
+
+  saveRDS(df, file.path(cached.path,cached.save,"tracking_GLRI.rds"))
+  
+  
+}
+
+getGLRIsites(cached.path, cached.save)
